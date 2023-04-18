@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Universitätsmedizin Mainz")]
 [assembly: AssemblyProduct("ESAPI Script")]
-[assembly: AssemblyCopyright("Copyright © Universitätsmedizin Mainz 2022")]
+[assembly: AssemblyCopyright("Copyright © Universitätsmedizin Mainz 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("0.1.0.4")]
-[assembly: AssemblyFileVersion("0.1.0.4")]
+[assembly: AssemblyVersion("0.1.0.5")]
+[assembly: AssemblyFileVersion("0.1.0.5")]
