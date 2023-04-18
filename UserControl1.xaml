@@ -7,7 +7,7 @@
              xmlns:local1="clr-namespace:BeamEnumerator;assembly=BeamEnumerator.esapi" x:Class="BeamEnumerator.UserControl1"
              mc:Ignorable="d" 
              d:DesignHeight="210" d:DesignWidth="200" Margin="0">
-    <StackPanel Background="#FF90CDE4" Margin="0,0,0,0" MinWidth="200" MinHeight="214" >
+    <StackPanel Background="#c8d8df" Margin="0,0,0,0" MinWidth="200" MinHeight="214" >
         <Label Content="Neue Feldnummer" Margin="10,0,10,0"/>
         <TextBox x:Name="Feldnummer" Height="23" TextWrapping="Wrap" Margin="10,0,10,0" Text="{Binding BeamIdx}"/>
         <GroupBox Header="DRR Parametersatz" Margin="10,5,10,0">

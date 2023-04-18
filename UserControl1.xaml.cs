@@ -28,8 +28,18 @@ namespace BeamEnumerator
         public string BeamIdx
         {
             get { return beamIdx; }
-            set { 
+            set {
+
                     beamIdx = value;
+                    if(value.Length >= 3)
+                    {
+                        beamIdx = value.Substring(0,3);
+                    }
+                    else if(value.Length < 3)
+                    {
+                        beamIdx = value;
+                        while(beamIdx.Length < 3) { BeamIdx += "1"; }
+                    }                    
                 }
         }
 
