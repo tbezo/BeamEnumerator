@@ -57,8 +57,15 @@ namespace BeamEnumerator
             // add default setup beams if none exist
             if (context.ExternalPlanSetup.Beams.Where(x => x.IsSetupField).Count() == 0)
             { 
-                AddSetupFields(context); 
-            }
+                if (!MammaButton.IsChecked.Value)
+                {
+                    AddSetupFields(context);
+                }
+                else
+                {
+                    AddMammaSetupFields(context);
+                }
+            }           
             EnumerateBeams(context);
             MessageBox.Show(mbtext, "Info");
             Window.GetWindow(this).Close();
@@ -159,6 +166,58 @@ namespace BeamEnumerator
             mbtext += "Setup Felder wurden erstellt, bitte die gewünschte\nToleranztabelle hinterlegen und die\nPlannormierung wieder einstellen!";
         }
 
+        // add mamma setup beams
+        private void AddMammaSetupFields(ScriptContext context)
+        {
+            bool setupDirection = false;
+
+            // Setup Beam Machine Parameters
+            string linac = context.ExternalPlanSetup.Beams.First().TreatmentUnit.Id;
+            VVector iso = context.ExternalPlanSetup.Beams.First().IsocenterPosition;
+            ExternalBeamMachineParameters mParams = new ExternalBeamMachineParameters(linac, "6X", 300, "STATIC", null);
+
+            // test for left or right side breast, x>0 -> left x<0 -> right
+            if (iso.x > 0) { setupDirection = true; }
+
+            // if left sided tumor use 300°
+            if (setupDirection)
+            {
+                if (linac == "TrueBeam_2")
+                {
+                    Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 300.0, 0.0, iso);
+                }
+                else
+                {
+                    Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 300.0, 0.0, iso);
+                }
+            }
+            // else: right sided tumor use 60°
+            else
+            {
+                if (linac == "TrueBeam_2")
+                {
+                    Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 60.0, 0.0, iso);
+                }
+                else
+                {
+                    Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 60.0, 0.0, iso);
+                }
+            }
+
+            if (context.ExternalPlanSetup.ReferencePoints.Count() > 2) // if more than two reference points we assume the is a supra clav ptv which get's an extra setup field
+            {
+                if (linac == "TrueBeam_2")
+                {
+                    Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 00.0, 0.0, iso);
+                }
+                else
+                {
+                    Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 00.0, 0.0, iso);
+                }
+            }
+            mbtext += "Mamma Setup Felder wurden erstellt, bitte die gewünschte\nToleranztabelle hinterlegen und die\nPlannormierung wieder einstellen!";
+        }
+
 
         // Change Beam Ids to nubmers according to plan name or user input
         private void EnumerateBeams(ScriptContext context)
@@ -234,16 +293,6 @@ namespace BeamEnumerator
             double area = (jaws.X2 - jaws.X1) * (jaws.Y2 - jaws.Y1);
             return area;
         }
-
-        // get body side
-/*        private string BodySide(ExternalPlanSetup ps)
-        {
-            string side = "";
-            double xBeam = ps.Beams.First().IsocenterPosition.x;
-            MessageBox.Show("x-Koordinate Isozentrum: " + xBeam.ToString());
-            
-            return side;
-        }*/
 
     }
 }
