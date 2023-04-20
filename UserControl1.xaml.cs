@@ -24,6 +24,7 @@ namespace BeamEnumerator
     {
         private ScriptContext context;
         public DRRCalculationParameters drrParam = new DRRCalculationParameters(500);  // 50 cm DRR size
+        private string mbtext = "";
         private string beamIdx;
         public string BeamIdx
         {
@@ -53,10 +54,14 @@ namespace BeamEnumerator
 
         private void ButtonOK(object sender, RoutedEventArgs e)
         {
-            AddSetupFields(context);
+            // add default setup beams if none exist
+            if (context.ExternalPlanSetup.Beams.Where(x => x.IsSetupField).Count() == 0)
+            { 
+                AddSetupFields(context); 
+            }
             EnumerateBeams(context);
+            MessageBox.Show(mbtext, "Info");
             Window.GetWindow(this).Close();
-            return;
         }
 
         private void ButtonCancel(object sender, RoutedEventArgs e)
@@ -107,54 +112,53 @@ namespace BeamEnumerator
         }
 
 
-        // add setup beams if none exist
+        // add default setup beams
         private void AddSetupFields(ScriptContext context)
         {
             bool setupDirection = false;
             
-            if (context.ExternalPlanSetup.Beams.Where(x => x.IsSetupField).Count() == 0)
+            // Setup Beam Machine Parameters
+            string linac = context.ExternalPlanSetup.Beams.First().TreatmentUnit.Id;
+            VVector iso = context.ExternalPlanSetup.Beams.First().IsocenterPosition;
+            ExternalBeamMachineParameters mParams = new ExternalBeamMachineParameters(linac, "6X", 300, "STATIC", null); // dose rate correct?
+
+            // check if there are beams between 180 and 60 degree
+            foreach (Beam b in context.ExternalPlanSetup.Beams)
             {
-                // Setup Beam Machine Parameters
-                string linac = context.ExternalPlanSetup.Beams.First().TreatmentUnit.Id;
-                VVector iso = context.ExternalPlanSetup.Beams.First().IsocenterPosition;
-                ExternalBeamMachineParameters mParams = new ExternalBeamMachineParameters(linac, "6X", 300, "STATIC", null); // dose rate correct?
-
-                // check if there are beams between 180 and 60 degree
-                foreach (Beam b in context.ExternalPlanSetup.Beams)
-                {
-                    double ga = Math.Round(b.ControlPoints.First().GantryAngle, 0);
-                    if (60.0 <= ga && ga <= 180 && !b.IsGantryExtended) { setupDirection = true; }
-                    if (ga > 180.0 && b.IsGantryExtended) { setupDirection = true; } // also if there is a beam with extended angle > 180 
-                }
-
-                if (setupDirection) // if there is a field between 180 and 45 degree, add setup fields at 180 an 90 degree
-                {
-                    if (linac == "TrueBeam_2")
-                    {
-                        Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 180.0, 0.0, iso);
-                    }
-                    else
-                    {
-                        Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 180.0, 0.0, iso);
-                    }
-                    Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 90.0, 0.0, iso);
-                }
-                else // if there are no fields between 180 and 45 degree use gantry angles 0 and 270.
-                {
-                    if (linac == "TrueBeam_2")
-                    {
-                        Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 0.0, 0.0, iso);
-                    }
-                    else
-                    {
-                        Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 0.0, 0.0, iso);
-                    }
-                    Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 270.0, 0.0, iso);
-                }
-                string mbtext = "Setup Felder wurden erstellt, bitte die gewünschte\nToleranztabelle hinterlegen und die\nPlannormierung wieder einstellen!";
-                MessageBox.Show(mbtext, "Info");
+                double ga = Math.Round(b.ControlPoints.First().GantryAngle, 0);
+                if (60.0 <= ga && ga <= 180 && !b.IsGantryExtended) { setupDirection = true; }
+                if (ga > 180.0 && b.IsGantryExtended) { setupDirection = true; } // also if there is a beam with extended angle > 180 
             }
+
+            // if there is a field between 180 and 60 degree, add setup fields at 180 an 90 degree
+            if (setupDirection) 
+            {
+                if (linac == "TrueBeam_2")
+                {
+                    Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 180.0, 0.0, iso);
+                }
+                else
+                {
+                    Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 180.0, 0.0, iso);
+                }
+                Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 90.0, 0.0, iso);
+            }
+            // if there are no fields between 180 and 45 degree use gantry angles 0 and 270.
+            else
+            {
+                if (linac == "TrueBeam_2")
+                {
+                    Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 0.0, 0.0, iso);
+                }
+                else
+                {
+                    Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 0.0, 0.0, iso);
+                }
+                Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 270.0, 0.0, iso);
+            }
+            mbtext += "Setup Felder wurden erstellt, bitte die gewünschte\nToleranztabelle hinterlegen und die\nPlannormierung wieder einstellen!";
         }
+
 
         // Change Beam Ids to nubmers according to plan name or user input
         private void EnumerateBeams(ScriptContext context)
@@ -214,7 +218,7 @@ namespace BeamEnumerator
             //Setup field-Loop
             foreach (Beam b in context.PlanSetup.Beams.Where(x => x.IsSetupField)) //.OrderBy(y => y.Id)
             {
-                StructureSet ss = context.PlanSetup.StructureSet;
+                //StructureSet ss = context.PlanSetup.StructureSet;
                 gantryangle = Math.Round(b.ControlPoints.First().GantryAngle, 0).ToString();
                 newBeamCount = gantryangle.ToString().Length < 2 ? gantryangle.ToString() : gantryangle.ToString().Substring(gantryangle.ToString().Length - 2, 1);
                 newBeamId = BeamIdx + "9" + newBeamCount;
@@ -230,6 +234,16 @@ namespace BeamEnumerator
             double area = (jaws.X2 - jaws.X1) * (jaws.Y2 - jaws.Y1);
             return area;
         }
+
+        // get body side
+/*        private string BodySide(ExternalPlanSetup ps)
+        {
+            string side = "";
+            double xBeam = ps.Beams.First().IsocenterPosition.x;
+            MessageBox.Show("x-Koordinate Isozentrum: " + xBeam.ToString());
+            
+            return side;
+        }*/
 
     }
 }
