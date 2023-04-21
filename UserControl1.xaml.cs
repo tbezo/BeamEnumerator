@@ -67,7 +67,7 @@ namespace BeamEnumerator
                 }
             }           
             EnumerateBeams(context);
-            MessageBox.Show(mbtext, "Info");
+            if (mbtext.Length > 0) { MessageBox.Show(mbtext, "Info"); }
             Window.GetWindow(this).Close();
         }
 
@@ -163,7 +163,7 @@ namespace BeamEnumerator
                 }
                 Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 270.0, 0.0, iso);
             }
-            mbtext += "Setup Felder wurden erstellt, bitte die gewünschte\nToleranztabelle hinterlegen und die\nPlannormierung wieder einstellen!";
+            this.mbtext += "Setup Felder wurden erstellt, bitte die gewünschte\nToleranztabelle hinterlegen und die Plannormierung\nwieder einstellen!";
         }
 
         // add mamma setup beams
@@ -215,7 +215,7 @@ namespace BeamEnumerator
                     Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 00.0, 0.0, iso);
                 }
             }
-            mbtext += "Mamma Setup Felder wurden erstellt, bitte die gewünschte\nToleranztabelle hinterlegen und die\nPlannormierung wieder einstellen!";
+            this.mbtext += "Mamma Setup Felder wurden erstellt, bitte die gewünschte\nToleranztabelle hinterlegen und die Plannormierung\nwieder einstellen!";
         }
 
 
@@ -266,25 +266,61 @@ namespace BeamEnumerator
             BeamCount = 1;
             foreach (Beam b in context.PlanSetup.Beams.Where(x => !x.IsSetupField).OrderByDescending(y => y.Id)) //.OrderBy(y => y.Id) ControlPoints.First().GantryAngle
             {
-                newBeamCount = BeamCount < 10 ? "0" + BeamCount.ToString() : BeamCount.ToString();
+                newBeamCount = BeamCount < 10 ? "0" + BeamCount.ToString() : BeamCount.ToString(); // handle single and double digits
                 newBeamId = BeamIdx + newBeamCount;
                 // left over from kiragroh BeamIdChanger script
-                b.Id = newBeamId.Length > 16 ? newBeamId.Substring(0, 16) : newBeamId;
+                b.Id = newBeamId.Length > 16 ? newBeamId.Substring(0, 16) : newBeamId; 
                 BeamCount++;
                 b.CreateOrReplaceDRR(drrParam);
             }
 
-            //Setup field-Loop
-            foreach (Beam b in context.PlanSetup.Beams.Where(x => x.IsSetupField)) //.OrderBy(y => y.Id)
+            // Setup field-Loop for normal setup fields
+            if (!MammaButton.IsChecked.Value)
             {
-                //StructureSet ss = context.PlanSetup.StructureSet;
-                gantryangle = Math.Round(b.ControlPoints.First().GantryAngle, 0).ToString();
-                newBeamCount = gantryangle.ToString().Length < 2 ? gantryangle.ToString() : gantryangle.ToString().Substring(gantryangle.ToString().Length - 2, 1);
-                newBeamId = BeamIdx + "9" + newBeamCount;
-                // left over from kiragroh BeamIdChanger script
-                b.Id = newBeamId.Length > 16 ? newBeamId.Substring(0, 16) : newBeamId;
-                b.CreateOrReplaceDRR(drrParam);
+                foreach (Beam b in context.PlanSetup.Beams.Where(x => x.IsSetupField)) //.OrderBy(y => y.Id)
+                {
+                    gantryangle = Math.Round(b.ControlPoints.First().GantryAngle, 0).ToString();
+                    newBeamCount = gantryangle.ToString().Length < 2 ? gantryangle.ToString() : gantryangle.ToString().Substring(gantryangle.ToString().Length - 2, 1);
+                    newBeamId = BeamIdx + "9" + newBeamCount;
+                    // left over from kiragroh BeamIdChanger script
+                    try
+                    {
+                        b.Id = newBeamId.Length > 16 ? newBeamId.Substring(0, 16) : newBeamId;
+                    }
+                    catch { mbtext += "\nNummerierung der Dokfelder nicht eindeutig, bitte händisch korrigieren"; }
+                    b.CreateOrReplaceDRR(drrParam);
+                }
             }
+            else // DokMedLat and Dok0
+            {
+                foreach (Beam b in context.PlanSetup.Beams.Where(x => x.IsSetupField)) //.OrderBy(y => y.Id)
+                {
+                    List<string> defAngles = new List<string> { "90", "270", "180" };
+                    gantryangle = Math.Round(b.ControlPoints.First().GantryAngle, 0).ToString();
+
+                    if (gantryangle == "0")
+                    {
+                        newBeamId = "Dok0";
+                    }
+                    else if (defAngles.Contains("gantryangle"))
+                    {
+                        newBeamCount = gantryangle.ToString().Length < 2 ? gantryangle.ToString() : gantryangle.ToString().Substring(gantryangle.ToString().Length - 2, 1);
+                        newBeamId = BeamIdx + "9" + newBeamCount;
+                    }
+                    else
+                    {
+                        newBeamId = "DokMedLat";
+                    }
+                    // left over from kiragroh BeamIdChanger script
+                    try
+                    {
+                        b.Id = newBeamId.Length > 16 ? newBeamId.Substring(0, 16) : newBeamId;
+                    }
+                    catch { mbtext += "\nBenennung der Dokfelder nicht eindeutig, bitte händisch korrigieren"; }
+                    b.CreateOrReplaceDRR(drrParam);
+                }
+            }
+
         }
 
         // calculate jaw area
