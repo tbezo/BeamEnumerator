@@ -302,7 +302,7 @@ namespace BeamEnumerator
                     {
                         newBeamId = "Dok0";
                     }
-                    else if (defAngles.Contains("gantryangle"))
+                    else if (defAngles.Contains(gantryangle))
                     {
                         newBeamCount = gantryangle.ToString().Length < 2 ? gantryangle.ToString() : gantryangle.ToString().Substring(gantryangle.ToString().Length - 2, 1);
                         newBeamId = BeamIdx + "9" + newBeamCount;
