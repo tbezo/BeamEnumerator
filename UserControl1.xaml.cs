@@ -24,6 +24,7 @@ namespace BeamEnumerator
     {
         private ScriptContext context;
         public DRRCalculationParameters drrParam = new DRRCalculationParameters(500);  // 50 cm DRR size
+        private DRRCalculationParameters drrParamBone = new DRRCalculationParameters(500);
         private string mbtext = "";
         private string beamIdx;
         public string BeamIdx
@@ -50,6 +51,9 @@ namespace BeamEnumerator
             DataContext = this;
             this.context = context;
             BeamIdx = "111"; //default value in case gueassing fails
+            // extra parameter set for Mamma Dok0
+            drrParamBone.SetLayerParameters(0, 2.0, -16.0, 126.0, 20.0, 60.0);
+            drrParamBone.SetLayerParameters(1, 10.0, 100.0, 1000.0);
         }
 
         private void ButtonOK(object sender, RoutedEventArgs e)
@@ -282,9 +286,10 @@ namespace BeamEnumerator
                     gantryangle = Math.Round(b.ControlPoints.First().GantryAngle, 0).ToString();
                     newBeamCount = gantryangle.ToString().Length < 2 ? gantryangle.ToString() : gantryangle.ToString().Substring(gantryangle.ToString().Length - 2, 1);
                     newBeamId = BeamIdx + "9" + newBeamCount;
-                    // left over from kiragroh BeamIdChanger script
-                    try
-                    {
+
+                    try // changing beam id, info if it fails
+                    {   
+                        // left over from kiragroh BeamIdChanger script
                         b.Id = newBeamId.Length > 16 ? newBeamId.Substring(0, 16) : newBeamId;
                     }
                     catch { mbtext += "\nNummerierung der Dokfelder nicht eindeutig, bitte händisch korrigieren"; }
@@ -295,9 +300,10 @@ namespace BeamEnumerator
             {
                 foreach (Beam b in context.PlanSetup.Beams.Where(x => x.IsSetupField)) //.OrderBy(y => y.Id)
                 {
-                    List<string> defAngles = new List<string> { "90", "270", "180" };
+                    List<string> defAngles = new List<string> { "90", "270", "180" }; // "normal" setup field angles 
                     gantryangle = Math.Round(b.ControlPoints.First().GantryAngle, 0).ToString();
 
+                    // decide on Beam Ids by gantry angle name, special cases are Dok0 and DokMedLat
                     if (gantryangle == "0")
                     {
                         newBeamId = "Dok0";
@@ -311,13 +317,22 @@ namespace BeamEnumerator
                     {
                         newBeamId = "DokMedLat";
                     }
-                    // left over from kiragroh BeamIdChanger script
-                    try
-                    {
+
+                    try // changing beam id, info if it fails
+                    {   
+                        // left over from kiragroh BeamIdChanger script
                         b.Id = newBeamId.Length > 16 ? newBeamId.Substring(0, 16) : newBeamId;
                     }
                     catch { mbtext += "\nBenennung der Dokfelder nicht eindeutig, bitte händisch korrigieren"; }
-                    b.CreateOrReplaceDRR(drrParam);
+
+                    if (b.Id == "Dok0")
+                    {
+                        b.CreateOrReplaceDRR(drrParamBone); // Bone Rendering for supra clav setup field
+                    }
+                    else
+                    {
+                        b.CreateOrReplaceDRR(drrParam);
+                    }
                 }
             }
 
