@@ -144,28 +144,30 @@ namespace BeamEnumerator
             // if there is a field between 180 and 60 degree, add setup fields at 180 an 90 degree
             if (setupDirection) 
             {
-                if (linac == "TrueBeam_2")
+                if (linac.StartsWith("TrueBeam"))
                 {
                     Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 180.0, 0.0, iso);
+                    Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 90.0, 0.0, iso);
                 }
                 else
                 {
                     Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 180.0, 0.0, iso);
+                    Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 90.0, 0.0, iso);
                 }
-                Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 90.0, 0.0, iso);
             }
             // if there are no fields between 180 and 45 degree use gantry angles 0 and 270.
             else
             {
-                if (linac == "TrueBeam_2")
+                if (linac.StartsWith("TrueBeam"))
                 {
                     Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 0.0, 0.0, iso);
+                    Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 270.0, 0.0, iso);
                 }
                 else
                 {
                     Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 0.0, 0.0, iso);
+                    Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 270.0, 0.0, iso);
                 }
-                Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -90.0, 125.0, 90.0), 0.0, 270.0, 0.0, iso);
             }
             this.mbtext += "Setup Felder wurden erstellt, bitte die gewünschte\nToleranztabelle hinterlegen und die Plannormierung\nwieder einstellen!";
         }
@@ -186,7 +188,7 @@ namespace BeamEnumerator
             // if left sided tumor use 300°
             if (setupDirection)
             {
-                if (linac == "TrueBeam_2")
+                if (linac.StartsWith("TrueBeam"))
                 {
                     Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 300.0, 0.0, iso);
                 }
@@ -198,7 +200,7 @@ namespace BeamEnumerator
             // else: right sided tumor use 60°
             else
             {
-                if (linac == "TrueBeam_2")
+                if (linac.StartsWith("TrueBeam"))
                 {
                     Beam nb1 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 60.0, 0.0, iso);
                 }
@@ -210,7 +212,7 @@ namespace BeamEnumerator
 
             if (context.ExternalPlanSetup.ReferencePoints.Count() > 2) // if more than two reference points we assume the is a supra clav ptv which get's an extra setup field
             {
-                if (linac == "TrueBeam_2")
+                if (linac.StartsWith("TrueBeam"))
                 {
                     Beam nb2 = context.ExternalPlanSetup.AddSetupBeam(mParams, new VRect<double>(-125.0, -125.0, 125.0, 125.0), 0.0, 00.0, 0.0, iso);
                 }
